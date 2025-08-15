@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python: pyrep",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "python": "/home/wawa/anaconda3/envs/pyrep/bin/python",
+            "args": [
+                "--n-agents=4",
+                "--field-size=10",
+                "--load-type=four",
+                "--seed=200",
+                "--training=1",
+                "--ntrain-iters=50",
+                "--nrollouts-per-iter=5",
+                "--ninit-rollouts=5",
+                "--neval=1",
+                "--log-path=/home/wawa/MARL_transport/log_MBRL_model",
+                "--mpc-per=1",
+                "--mpc-prop-mode=TSinf",
+                "--mpc-opt-mode=CEM",
+                "--mpc-npart=20",
+                "--mpc-plan-hor=5",
+                "--mpc-num-nets=1",
+                "--mpc-epsilon=0.001",
+                "--mpc-alpha=0.25",
+                "--mpc-epochs=25",
+                "--mpc-popsize=50",
+                "--mpc-max-iters=3",
+                "--mpc-num-elites=10"
+            ],
+        }
+    ]
+}
