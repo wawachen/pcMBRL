@@ -1,71 +1,76 @@
-# MARL_transport
-[Jingyu Chen](https://www.researchgate.net/profile/Jingyu-Chen-20) <br>   
-The University of Sheffield
+### MARL Transport 快速使用说明
 
-[PPT](https://drive.google.com/file/d/1W4y5NYy9OUnf1OauCdDr6KfAIPNrzIG8/view?usp=drive_link) | [Paper](https://www.sciencedirect.com/science/article/pii/S0921889023001288)
+简洁指南：运行无人机（Drone）与 Turtlebot 的训练与推理脚本。
 
-This is the official repository for the paper: A Deep Multi-Agent Reinforcement Learning Framework for Autonomous Aerial
-Navigation to Grasping Points on Loads
-
-## Install Dependencies
-The project is based on the simulator of Coppliasim. Thus, make sure you have installed the Coppliasim. <br>
-We use the ORCA for demonstration learning. The C++ code for ORCA can be found in `MARL_transport/src`. The Cython can transform the C++ code
-into the python code. To complie it, run  
-```
-python setup_rvo.py build_ext –-inplace
-
-```
-As we used the parallel training for demo-MADDPG, we need to install
-```
-python -m pip install mpi4py
-
+### 环境准备
+- 安装依赖：
+```bash
+pip install -r requirements.txt
 ```
 
-## Main 
-### Demonstration collection
-To collect the demonstration data, we run 
+### Drone（无人机）
+- 混合RL推理（推荐示例）
+```bash
+bash examples/train_RL_drones_whole_transport_hybrid.sh
 ```
-./collect_RL_drones_demo.sh
+  - 调用 `examples/RL_drone_transport_hybrid.py`，常用参数：`--n-agents`、`--field-size`、`--evaluate-episodes` 等。
 
+- 离线 MBRL 训练（基于示例数据）
+```bash
+bash examples/train_offline_model_MBRL.sh
 ```
-The data will be save like `orca_demonstration_ep100_3agents_env10.npz`
+  - 调用 `examples/train_offline_model_MBRL.py`，针对 3/4/6 个智能体，使用仓库内的 `orca_demonstrationMBRL_steps50k_*agents_env10.npz`。
 
+- 离线 MBRL 推理/评估
+```bash
+bash examples/evaluate_offline_model_MBRL.sh
+```
+  - 评估基于学习的动力学 + MPC 策略，默认日志目录：`/home/xlab/MARL_transport/log_MBRL_model`。
 
-### Run the code
-In the paper, we proposed two algorithms, `learning from the demonstrated trajectories` and `behaviour cloning`. We compare them with the MADDPG, MAPPO and the behaviour swarm optimisation (BSO).<br>
+- 直接运行（示例，Drone MBRL）
+```bash
+python examples/train_offline_model_MBRL.py \
+  --n-agents=3 \
+  --field-size=10 \
+  --training=1 \
+  --log-path="/home/xlab/MARL_transport/log_MBRL_model" \
+  --ntrain-iters=20 --nrollouts-per-iter=5 --ninit-rollouts=5 --neval=1 \
+  --mpc-per=1 --mpc-prop-mode="TSinf" --mpc-opt-mode="CEM" \
+  --mpc-npart=20 --mpc-plan-hor=10 --mpc-num-nets=1 \
+  --mpc-epsilon=0.001 --mpc-alpha=0.25 --mpc-epochs=25 \
+  --mpc-popsize=50 --mpc-max-iters=3 --mpc-num-elites=10
+```
+  - 切换到评估：将 `--training=0`，并添加 `--eval-episodes=20`。
 
-To run the plain MADDPG,
+### Turtlebot（小车）
+- MBRL 训练
+```bash
+bash examples/train_turtlebot_MBRL.sh
 ```
-./train_RL_drones_V0.sh
+  - 调用 `examples/train_turtlebot_MBRL.py`，针对 3/4 个智能体，使用 `turtlebot_demonstrationMBRL_steps50k_*agents_env10.npz`。
 
+- MBRL 推理/评估
+```bash
+bash examples/evaluate_turtlebot_MBRL.sh
 ```
-To run the attention-based MADDPG,
-```
-./train_RL_drones_V0_attention.sh
-```
+  - 日志默认保存到：`/home/xlab/MARL_transport/log_MBRL_model/evaluation_logs`。
 
-To run the demonstrated trajectories,
-```
-./train_RL_drones_demo.sh
-
-```
-
-To run the behaviour cloning,
-```
-./train_RL_drones_orca.sh
-```
-
-To run the MAPPO,
-```
-./train_RL_drones_MAPPO.sh
-```
-To run the curriculum learning,
-```
-./train_curriculum_wt_ddpg.sh
+- 直接运行（示例，Turtlebot MBRL）
+```bash
+python examples/train_turtlebot_MBRL.py \
+  --n-agents=3 \
+  --field-size=10 \
+  --training=0 \
+  --eval-episodes=20 \
+  --log-path="/home/xlab/MARL_transport/log_MBRL_model" \
+  --task-hor=40 \
+  --mpc-per=1 --mpc-prop-mode="TSinf" --mpc-opt-mode="CEM" \
+  --mpc-npart=20 --mpc-plan-hor=10 --mpc-num-nets=1 \
+  --mpc-epsilon=0.001 --mpc-alpha=0.25 --mpc-epochs=25 \
+  --mpc-popsize=50 --mpc-max-iters=3 --mpc-num-elites=10
 ```
 
-To run the whole transport from navigation to manipulation,
-```
-./train_RL_drones_whole_transport_hybrid.sh
-```
-
+### 备注
+- 场景文件（`*.ttt`）位于 `examples/`，脚本会自动加载。
+- `--n-agents` 可在 {3, 4, 6} 中切换，对应随附数据与配置。
+- 日志与模型默认写入 `log_MBRL_model`，可通过 `--log-path` 修改。 
